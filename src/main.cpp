@@ -26,12 +26,12 @@ bool oldDeviceConnected = false;
 
 class MyServerCallback : public BLEServerCallbacks
 {
-  void onConnect(BLEServer *pServer, esp_ble_gatts_cb_param_t *param)
+  void onConnect(BLEServer *pServer)
   {
     deviceConnected = true;
     BLEDevice::startAdvertising();
   };
-  void onDisconnect(BLEServer *pServer, esp_ble_gatts_cb_param_t *param)
+  void onDisconnect(BLEServer *pServer)
   {
     deviceConnected = false;
   }
@@ -71,7 +71,9 @@ void setup()
 
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVEICE_UUID);
-  pAdvertising->setMinPreferred(0x0);
+  // pAdvertising->setMinPreferred(0x0);
+  pAdvertising->setMinPreferred(0x06);
+  pAdvertising->setMinPreferred(0x12);
   pServer->getAdvertising()->start();
   Serial.println("Waiting a client connection to notify...");
 
@@ -91,17 +93,21 @@ void loop()
       float temp = random(10, 40);
       float bloodOxygen = random(70, 120);
       float heartRate = random(70, 120);
-      uint8_t tempString = temp;
-      uint8_t dataOksimeter[2];
-      dataOksimeter[0] = bloodOxygen;
-      dataOksimeter[1] = heartRate;
+      String tempString = String(temp);
+      String dataOksimeter = "[" + String(bloodOxygen) + ", " + String(heartRate) + "]";
+      // uint8_t tempString = temp;
+      // uint8_t dataOksimeter[2];
+      // dataOksimeter[0] = bloodOxygen;
+      // dataOksimeter[1] = heartRate;
 
-      pOksimeterCharacteristic->setValue(dataOksimeter, sizeof(dataOksimeter));
+      // pOksimeterCharacteristic->setValue(dataOksimeter, sizeof(dataOksimeter));
+      pOksimeterCharacteristic->setValue(dataOksimeter.c_str());
       pOksimeterCharacteristic->notify();
       Serial.println("Oksigen Darah: " + String(bloodOxygen));
       Serial.println("Detak Jantung: " + String(heartRate));
 
-      pTermometerCharacteristic->setValue(&tempString, 4);
+      // pTermometerCharacteristic->setValue(&tempString, 4);
+      pTermometerCharacteristic->setValue(tempString.c_str());
       pTermometerCharacteristic->notify();
       Serial.println("Temperature: " + String(temp));
       Serial.println("----------------------------------------------------------------");
